@@ -1,0 +1,224 @@
+<html>
+<canvas id="gameCanvas" width="800" height="600"> </canvas>
+
+<script>
+var canvas ; 
+var canvascontext ;
+
+var ballx = 10; 
+var ballY = 140; 
+
+var ballSpeedx = 15 ; 
+var ballSpeedY = 4 ; 
+
+var peddle1Y = 100 ; 
+var peddle1X = 0 ;
+
+var peddle2Y = 100 ; 
+
+const PEDDLE_HEIGHT = 150 ; 
+const PEDDLE_THICKNESS = 10 ; 
+
+var playerScore = 0 ; 
+var computerScore = 0 ; 
+
+var WinningScore  = 3 ; 
+var WINNING_DISPLAY = false ; 
+
+function OnMouseDown(evt) 
+{
+	if(WINNING_DISPLAY == true ) 
+	{
+
+	playerScore = 0 ; 
+	computerScore = 0 ; 
+	WINNING_DISPLAY = false ; 
+	
+	}
+}
+function calcMousePos(evt)
+{	
+	var rect = canvas.getBoundingClientRect() ; //to decleare where the canvas to take pos from
+	var root = document.documentElement ; //the base page 
+	var mouseX = evt.clientX - rect.left - root.scrollLeft ; 
+	var mouseY = evt.clientY - rect.top  - root.scrollTop ; 
+	
+	return {
+		x:mouseX ,
+		y:mouseY 
+		};
+
+}
+
+window.onload = function()
+{
+	console.log("HELLO") ;
+	canvas = document.getElementById('gameCanvas') ; 
+	canvascontext = canvas.getContext('2d') ;
+	
+	var framePerSeconds = 30 ;  
+	setInterval(function() {
+				drawEverything() ;
+				moveEverything() ; 
+				},1000/framePerSeconds) ; 
+
+	canvas.addEventListener ('mousedown',OnMouseDown) ; 
+
+	canvas.addEventListener ('mousemove' , 
+				 function(evt) {
+						var mousePos = calcMousePos(evt) ;
+						peddle1Y = mousePos.y - PEDDLE_HEIGHT  /2 ; 
+						//peddle2Y = mousePos.y - PEDDLE_HEIGHT  / 2  ; 
+						
+						
+						}) ; 
+
+}
+
+function ballReset() 
+{	
+	if(playerScore >= WinningScore || computerScore >= WinningScore ) 
+	{
+	WINNING_DISPLAY = true   ; 
+	}
+	//change the dirction of the ball 
+	
+	ballSpeedx  = - ballSpeedx  ;
+	ballSpeedY  = - ballSpeedY  ;
+	//out from center 
+	ballx = canvas.width  /2  ; 
+	ballY = canvas.height /2  ; 
+	
+
+}
+
+function computerMovement () 
+{	var inc = 5 ; 
+	var peddle2YCenter = peddle2Y + PEDDLE_HEIGHT /2 ; 
+	if ( peddle2YCenter < ballY - 50  ) peddle2Y += inc ; 	
+	else if ( peddle2YCenter > ballY + 50  ) peddle2Y -= inc ; 
+}
+function playerMovement () 
+{	var inc = 10 ; 
+	var peddle1YCenter = peddle1Y + PEDDLE_HEIGHT /2 ; 
+	if ( peddle1YCenter < ballY - 50  ) peddle1Y += inc ; 	
+	else if ( peddle1YCenter > ballY + 50  ) peddle1Y -= inc ; 
+}
+
+function moveEverything() 
+{	if(WINNING_DISPLAY == true ) 
+	{
+	return ; 
+	}
+	computerMovement () ; 
+	//playerMovement () ;
+	if(ballx >= canvas.width ) 
+		{
+		if(ballY >= peddle2Y && ballY <= peddle2Y+PEDDLE_HEIGHT ) 			
+		{	 ballSpeedx  = - ballSpeedx  ;
+			//have nice ping effect of the peddle 
+			var deltaY = ballY - (peddle2Y + PEDDLE_HEIGHT/ 2) ; 
+			ballSpeedY = deltaY * 0.20 ; 
+		}
+		else 
+		{	
+			playerScore++ ;
+			ballReset();
+			
+		} 
+		}
+	if(ballx <= 0 ) 
+		{
+		if(ballY >= peddle1Y && ballY <= peddle1Y+PEDDLE_HEIGHT ) 			
+		{	 ballSpeedx  = - ballSpeedx  ;
+			//have nice ping effect of the peddle 
+			var deltaY = ballY - (peddle1Y + PEDDLE_HEIGHT/ 2 ); 
+			ballSpeedY = deltaY * 0.10 ; 
+		}
+		else 
+		{
+			computerScore++ ;
+			ballReset();
+			 
+		}
+		}
+	if(ballY >= canvas.height ) 
+		{ 
+		ballSpeedY  = - ballSpeedY  ; 
+		}
+	if(ballY <= 0 ) 
+		{
+		ballSpeedY = - ballSpeedY  ; 
+		} 
+
+	ballx = ballx + ballSpeedx ; 
+	ballY = ballY + ballSpeedY ; 
+
+	//console.log(ballx) ;
+	
+}
+
+function netDraw()
+{
+	for(var i = 10 ; i <canvas.height ; i+=40)
+	 {drawRect(canvas.width/2 ,i,2,20,'blue');}
+	
+}
+function drawEverything()
+{	//this draws the background canvas 
+	drawRect(0,0,canvas.width,canvas.height,'black') ; 
+	canvascontext.fillStyle = 'white' ;
+	canvascontext.font="20px Georgia"
+	canvascontext.fillText("THIS GAME IS DESIGNED BY ESLAM ROSHDII",180,15); ;
+	canvascontext.fillText("7Sep2017",canvas.width - 100 ,canvas.height-15); ;
+
+	if(WINNING_DISPLAY == true ) 
+	{
+	canvascontext.font="40px Georgia"
+	canvascontext.fillStyle = 'yellow' ;
+	canvascontext.fillText("Click to play !",canvas.width/2 - 100 , canvas.height/2+200) ;
+	if(playerScore >= WinningScore) {canvascontext.fillText("Left Player Wins!",canvas.width/2 - 150 , canvas.height/2) ; }
+	else if(computerScore >= WinningScore  ) {canvascontext.fillText("Right Player Wins!",canvas.width/2-150, canvas.height/2) ; }
+	 
+	
+	return ; 
+	}
+
+	//this draws the player side Peddel 
+	drawRect(peddle1X , peddle1Y ,PEDDLE_THICKNESS  ,PEDDLE_HEIGHT ,'white') ; 
+	
+	//this draws the computer side Peddel 
+	drawRect(canvas.width - PEDDLE_THICKNESS , peddle2Y ,PEDDLE_THICKNESS  ,PEDDLE_HEIGHT ,'white') ; 
+	
+	//this draws the Ball 
+	drawCircle(ballx,ballY,10,'yellow') ; 
+	
+	
+	canvascontext.font="20px Arial"
+	canvascontext.fillText("PlayerScore : ",60,75) ; 
+	canvascontext.fillText("ComputerScore : ",canvas.width - 190,75) ; 
+
+	canvascontext.fillText(playerScore,100,100) ; 
+	canvascontext.fillText(computerScore,canvas.width - 140,100) ; 
+	netDraw()  ;
+	
+}
+
+function drawCircle(CenterX,CenterY,raduis,colorDraw)
+{
+	canvascontext.fillStyle = colorDraw ; 
+	canvascontext.beginPath() ; 
+	canvascontext.arc(CenterX,CenterY,raduis,0,Math.PI*2,true) ;//begin of arc , end , inverse 
+	canvascontext.fill() ; 
+}
+
+function drawRect(LeftX,TopY,width,height,colorDraw) 
+{
+	canvascontext.fillStyle = colorDraw ;
+	canvascontext.fillRect(LeftX,TopY,width,height) ; 
+
+}
+
+
+</script>
+</html>
